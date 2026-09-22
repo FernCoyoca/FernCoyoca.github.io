@@ -258,102 +258,182 @@ nav.scrolled {
   background: var(--teal);
 }
 
-/* ── HERO RIGHT ── */
+/* ── HERO RIGHT — FRAMELESS 3D ── */
 .hero-right {
   background: var(--steel-50);
-  position: relative; display: flex; align-items: flex-end; justify-content: center;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
   min-height: 100vh; overflow: hidden;
+  perspective: 1400px;
   opacity: 0; animation: fade-in 1.0s 0.6s var(--ease-out) forwards;
 }
-/* grid background — industrial graph paper */
+/* industrial grid paper */
 .hero-right::before {
   content: '';
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; z-index: 0;
   background-image:
-    linear-gradient(rgba(13,31,45,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(13,31,45,0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(rgba(13,31,45,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13,31,45,0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
+/* radial vignette so photo blends smoothly into bg */
 .hero-right::after {
   content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, var(--steel-50) 0%, transparent 20%, transparent 70%, var(--steel-50) 100%);
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 75% 85% at 52% 48%, transparent 38%, var(--steel-50) 100%);
 }
-.hero-photo-wrap {
-  position: relative; z-index: 5; width: 80%; max-width: 360px;
+
+/* ── 3D PHOTO SCENE ── */
+.photo-3d-scene {
+  position: relative; z-index: 10;
+  width: 88%; max-width: 480px;
   display: flex; flex-direction: column; align-items: center;
+  transform-style: preserve-3d;
+  animation: photo-float 6s ease-in-out infinite;
+  will-change: transform;
+  cursor: default;
 }
-.hero-photo-frame {
-  position: relative; width: 100%;
-  background: var(--white);
-  border: 1px solid var(--border-mid);
-  border-bottom: none;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
+@keyframes photo-float {
+  0%,100% { transform: rotateX(2deg) rotateY(-6deg) translateY(0px); }
+  50%      { transform: rotateX(-2deg) rotateY(6deg) translateY(-16px); }
 }
-/* top accent bar */
-.hero-photo-frame::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, var(--teal), var(--amber));
-  z-index: 10;
+.photo-3d-scene.is-tilting { animation-play-state: paused; }
+
+/* ── THE PHOTO — no frame, no border, no border-radius box ── */
+.photo-3d-img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: top center;
+  /* clip bottom to remove background behind subject */
+  border-radius: 0;
+  /* mask: fade bottom edge into the page bg */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 55%,
+    transparent 100%
+  );
+  /* 3D depth shadow — no frame, just light and shadow */
+  filter:
+    drop-shadow(0px 24px 40px rgba(13,31,45,0.22))
+    drop-shadow(0px 8px 16px rgba(13,31,45,0.14))
+    drop-shadow(-4px 0px 20px rgba(0,107,122,0.06))
+    drop-shadow(4px 0px 20px rgba(196,123,0,0.04));
+  position: relative; z-index: 3;
+  transition: filter 0.3s ease;
 }
-.hero-photo {
-  width: 100%; display: block;
-  object-fit: cover; object-position: top center;
+.photo-3d-scene:hover .photo-3d-img {
+  filter:
+    drop-shadow(0px 36px 56px rgba(13,31,45,0.28))
+    drop-shadow(0px 12px 24px rgba(13,31,45,0.18))
+    drop-shadow(-6px 0px 28px rgba(0,107,122,0.1))
+    drop-shadow(6px 0px 28px rgba(196,123,0,0.07));
 }
-/* ID card bottom strip */
-.hero-id-strip {
-  background: var(--navy); color: var(--white);
-  width: 100%; padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  box-shadow: var(--shadow-lg);
+
+/* ground glow beneath photo */
+.photo-ground-glow {
+  position: absolute;
+  bottom: 14%; left: 50%; transform: translateX(-50%);
+  width: 70%; height: 40px;
+  background: radial-gradient(ellipse, rgba(0,107,122,0.18) 0%, transparent 72%);
+  filter: blur(16px);
+  z-index: 1;
+  border-radius: 50%;
+  animation: glow-pulse 6s ease-in-out infinite;
 }
-.id-name {
+@keyframes glow-pulse {
+  0%,100% { opacity: 0.7; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity: 1.0; transform: translateX(-50%) scaleX(1.12); }
+}
+
+/* name tag — sits below photo, fades in naturally */
+.photo-name-tag {
+  position: relative; z-index: 4;
+  margin-top: -32px; /* overlap slightly with photo fade */
+  text-align: center;
+  transform: translateZ(0);
+}
+.pnt-name {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: 0.04em;
+  font-size: 17px; font-weight: 700;
+  color: var(--navy); letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
-.id-title {
+.pnt-role {
   font-family: 'DM Mono', monospace;
-  font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 2px; letter-spacing: 0.05em;
+  font-size: 10px; color: var(--text-muted);
+  letter-spacing: 0.07em; margin-top: 3px;
 }
-.id-badge {
-  background: var(--teal); color: var(--white);
-  font-family: 'DM Mono', monospace;
-  font-size: 9px; padding: 4px 8px; border-radius: 2px; font-weight: 500;
-  letter-spacing: 0.04em;
-}
-/* floating info cards */
-.info-card {
-  position: absolute; z-index: 20;
+
+/* ── FLOATING STAT CHIPS ── */
+.stat-chip {
+  position: absolute; z-index: 30;
   background: var(--white);
   border: 1px solid var(--border-mid);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   box-shadow: var(--shadow-md);
-  transition: transform 0.3s var(--ease-out);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
+  animation: chip-bob 5s ease-in-out infinite;
+  cursor: default;
 }
-.info-card:hover { transform: scale(1.03); }
-.info-card-tl { top: 18%; left: 6%; }
-.info-card-tr { top: 26%; right: 5%; }
-.info-card-bl { bottom: 22%; left: 4%; }
-.ic-label {
+.stat-chip:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: var(--shadow-lg);
+}
+.chip-tl {
+  top: 18%; left: 4%;
+  border-left: 3px solid var(--teal);
+  animation-delay: 0s;
+}
+.chip-tr {
+  top: 30%; right: 3%;
+  border-left: 3px solid var(--amber);
+  animation-delay: 1.6s;
+}
+.chip-bl {
+  bottom: 24%; left: 3%;
+  border-left: 3px solid var(--navy);
+  animation-delay: 3.2s;
+}
+@keyframes chip-bob {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-7px); }
+}
+.stat-chip:hover { animation-play-state: paused; }
+.sc-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--text-faint);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px;
+}
+.sc-value {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 9px; font-weight: 700; color: var(--text-faint);
-  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;
+  font-size: 28px; font-weight: 800; color: var(--teal); line-height: 1;
 }
-.ic-value {
+.sc-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.sc-row { display: flex; align-items: center; gap: 8px; }
+.sc-txt {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px; font-weight: 700; color: var(--teal); line-height: 1;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.03em;
 }
-.ic-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.ic-row { display: flex; align-items: center; gap: 8px; }
-.ic-icon { font-size: 18px; }
-.ic-txt { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.03em; }
-.ic-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: blink 2s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sc-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px rgba(0,107,122,0.5);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.75)} }
+
+/* keep old info-card classes in case referenced elsewhere — hidden */
+.info-card, .hero-photo-wrap, .hero-photo-frame, .hero-id-strip { display: none; }
 
 /* ── BUTTONS ── */
 .btn-primary {

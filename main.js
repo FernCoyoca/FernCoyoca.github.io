@@ -106,24 +106,43 @@ const counterObs = new IntersectionObserver((entries) => {
 const statsStrip = document.querySelector('.stats-strip-inner');
 if (statsStrip) counterObs.observe(statsStrip);
 
-/* ── 3D CARD MOUSE TILT (hero) ── */
-const heroPhoto = document.querySelector('.hero-photo-frame');
-if (heroPhoto) {
-  const heroRight = document.querySelector('.hero-right');
-  if (heroRight) {
-    heroRight.addEventListener('mousemove', (e) => {
-      const rect = heroRight.getBoundingClientRect();
-      const cx = rect.left + rect.width  / 2;
-      const cy = rect.top  + rect.height / 2;
-      const dx = (e.clientX - cx) / (rect.width  / 2);
-      const dy = (e.clientY - cy) / (rect.height / 2);
-      heroPhoto.style.transform = `perspective(800px) rotateX(${-dy * 6}deg) rotateY(${dx * 6}deg)`;
-      heroPhoto.style.transition = 'transform 0.1s ease';
-    });
-    heroRight.addEventListener('mouseleave', () => {
-      heroPhoto.style.transform = 'perspective(800px) rotateX(0) rotateY(0)';
-      heroPhoto.style.transition = 'transform 0.6s ease';
-    });
+/* ── 3D PHOTO MOUSE TILT ── */
+const photo3d  = document.getElementById('photo3d');
+const heroRight = document.getElementById('hero-right');
+if (photo3d && heroRight) {
+  let rafId = null;
+  let targetRX = 0, targetRY = 0, currentRX = 0, currentRY = 0;
+
+  heroRight.addEventListener('mousemove', (e) => {
+    const rect = heroRight.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width  / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    targetRX = -dy * 10;
+    targetRY =  dx * 12;
+    photo3d.classList.add('is-tilting');
+    if (!rafId) rafId = requestAnimationFrame(smoothTilt);
+  });
+
+  heroRight.addEventListener('mouseleave', () => {
+    targetRX = 0; targetRY = 0;
+    photo3d.classList.remove('is-tilting');
+  });
+
+  function smoothTilt() {
+    currentRX += (targetRX - currentRX) * 0.1;
+    currentRY += (targetRY - currentRY) * 0.1;
+    photo3d.style.transform = `rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
+    const stillMoving = Math.abs(targetRX - currentRX) > 0.01 || Math.abs(targetRY - currentRY) > 0.01;
+    if (stillMoving) {
+      rafId = requestAnimationFrame(smoothTilt);
+    } else {
+      rafId = null;
+      if (!photo3d.classList.contains('is-tilting')) {
+        photo3d.style.transform = '';
+      }
+    }
   }
 }
 
